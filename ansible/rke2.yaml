@@ -57,3 +57,57 @@
       enabled: true
     when: hostvars[inventory_hostname].primary| default('false') |bool == false
 
+  - name: Create .kube dir
+    ansible.builtin.file:
+      path: /root/.kube
+      state: directory
+      mode: '0755'
+
+  - name: Create a symbolic link to kubectl
+    ansible.builtin.file:
+      src: /var/lib/rancher/rke2/bin/kubectl
+      dest: /usr/local/bin/kubectl
+      owner: root
+      group: root
+      state: link
+
+  - name: Create a symbolic link to kubeconfig
+    ansible.builtin.file:
+      src: /etc/rancher/rke2/rke2.yaml
+      dest: /root/.kube/config
+      owner: root
+      group: root
+      state: link
+
+  - name: Install helm
+    ansible.builtin.shell: curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -
+
+  - name: Add jetstack repo
+    ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Add rancher repo
+    ansible.builtin.shell: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Update helm repos
+    ansible.builtin.shell: helm repo update
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Add cert-manager CRDs
+    ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Install cert-manager
+    ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.7.1
+    ignore_errors: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Create cattle-system namespace
+    ansible.builtin.shell: kubectl create ns cattle-system
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Install Rancher
+    ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{hostvars['controlplane-0'].ansible_default_ipv4.address}}.sslip.io
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+

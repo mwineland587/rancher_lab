@@ -12,6 +12,5 @@ resource "aws_instance" "upstream_controlplane" {
 
   tags = {
     Name          = "Upstream Controlplane ${count.index}",
-    ansible-index = count.index
   }
 }
