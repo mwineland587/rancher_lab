@@ -10,6 +10,12 @@ resource "aws_instance" "upstream_controlplane" {
   key_name        = "terraform-key"
   security_groups = [aws_security_group.ssh.name, aws_security_group.https.name, aws_security_group.all.name]
 
+  root_block_device {
+    volume_size           = "50"
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
   tags = {
     Name          = "Upstream Controlplane ${count.index}",
   }

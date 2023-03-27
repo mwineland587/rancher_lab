@@ -42,7 +42,7 @@ resource "aws_security_group_rule" "in_all" {
   type              = "ingress"
   from_port         = 0
   to_port           = 65535
-  protocol          = "TCP"
+  protocol          = "ALL"
   cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
   security_group_id = aws_security_group.all.id
 }
@@ -51,7 +51,7 @@ resource "aws_security_group_rule" "out_all" {
   type              = "egress"
   from_port         = 0
   to_port           = 65535
-  protocol          = "TCP"
+  protocol          = "ALL"
   cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
   security_group_id = aws_security_group.all.id
 }

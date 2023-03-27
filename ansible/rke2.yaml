@@ -41,6 +41,8 @@
 
   - name: Install RKE2
     ansible.builtin.shell: curl -sfL https://get.rke2.io | bash -
+    args:
+      creates: /var/lib/rancher
 
   - name: Enable and start RKE2 on controlplane-0
     ansible.builtin.systemd:
@@ -81,33 +83,50 @@
 
   - name: Install helm
     ansible.builtin.shell: curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -
+    args:
+      creates: /usr/local/bin/helm
 
   - name: Add jetstack repo
-    ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io
+    kubernetes.core.helm_repository:
+      name: jetstack
+      repo_url: https://charts.jetstack.io
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
   - name: Add rancher repo
-    ansible.builtin.shell: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+    kubernetes.core.helm_repository:
+      name: rancher-stable
+      repo_url: https://releases.rancher.com/server-charts/stable
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
-  - name: Update helm repos
-    ansible.builtin.shell: helm repo update
+  - name: Download Cert-Manager CRDs to the cluster.
+    ansible.builtin.get_url:
+      url: https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+      dest: ~/cert-manager.crds.yaml
+      mode: '0644'
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
-  - name: Add cert-manager CRDs
-    ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+  - name: Apply Cert-Manager CRDs to the cluster.
+    kubernetes.core.k8s:
+      state: present
+      src: ~/cert-manager.crds.yaml
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
-  - name: Install cert-manager
-    ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.7.1
-    ignore_errors: true
+  - name: Deploy Cert-Manager chart
+    kubernetes.core.helm:
+      name: cert-manager
+      namespace: cert-manager
+      create_namespace: true
+      chart_ref: jetstack/cert-manager
+      chart_version: v1.7.1
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
-  - name: Create cattle-system namespace
-    ansible.builtin.shell: kubectl create ns cattle-system
+  - name: Deploy Rancher chart
+    kubernetes.core.helm:
+      name: rancher
+      namespace: cattle-system
+      create_namespace: true
+      chart_ref: rancher-stable/rancher
+      chart_version: 2.7.1
+      set_values:
+        - value: hostname={{ ansible_host }}.sslip.io
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
-
-  - name: Install Rancher
-    ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{hostvars['controlplane-0'].ansible_default_ipv4.address}}.sslip.io
-    when: hostvars[inventory_hostname].primary| default('false') |bool == true
-
