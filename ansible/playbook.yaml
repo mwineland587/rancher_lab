@@ -129,6 +129,7 @@
       create_namespace: true
       chart_ref: jetstack/cert-manager
       chart_version: v1.7.1
+      update_repo_cache: true
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
   - name: Deploy Rancher chart
@@ -138,6 +139,19 @@
       create_namespace: true
       chart_ref: rancher-stable/rancher
       chart_version: 2.7.1
+      update_repo_cache: true
       set_values:
         - value: hostname={{ ansible_host }}.sslip.io
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Wait for Rancher to respond
+    ansible.builtin.uri:
+      url: https://{{ ansible_host }}.sslip.io/dashboard/auth/login
+      follow_redirects: all
+      validate_certs: false
+      method: GET
+    register: _result
+    until: _result.status == 200
+    retries: 60
+    delay: 5
     when: hostvars[inventory_hostname].primary| default('false') |bool == true

@@ -12,7 +12,7 @@ resource "local_file" "hosts_cfg" {
 resource "null_resource" "runansible" {
 depends_on = [local_file.hosts_cfg]
   provisioner "local-exec" {
-      command = "ansible-playbook -i ansible/inventory.cfg ansible/rke2.yaml"
+      command = "ansible-playbook -i ansible/inventory.cfg ansible/playbook.yaml"
     }
 }
 

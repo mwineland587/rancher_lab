@@ -6,6 +6,9 @@ locals {
   ssh_key        = "ssh-rsa AAAAB3Nz...diqs8lGQ== michael"
 }
 
+output "rancher_url" {
+  value        = https://aws_instance.upstream_controlplane.[0].public_ip.sslip.io
+}
 #output "public_ip" {
 #  value       = aws_instance.upstream_controlplane.*.public_ip
 #  description = "Public IP Address of EC2 instance"
