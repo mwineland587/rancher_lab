@@ -8,3 +8,5 @@ Install required ansible collection:
 ansible-galaxy collection install kubernetes.core
 
 Copy variables.tf.sample to variables.tf and put in your public SSH key
+
+Then just run terraform apply
