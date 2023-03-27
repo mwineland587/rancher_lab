@@ -1,0 +1,59 @@
+---
+
+- hosts: upstream
+  gather_facts: no
+  become: yes
+  tasks:
+
+  - name: Wait for system to become reachable
+    ansible.builtin.wait_for_connection:
+  - name: Gather facts for first time
+    ansible.builtin.setup:
+        #  - name: Display all variables/facts known for a host
+        #    debug:
+        #      var: hostvars[inventory_hostname]
+        #    tags: debug_info
+
+  - name: Create rke2 dir
+    ansible.builtin.file:
+      path: /etc/rancher/rke2
+      state: directory
+      mode: '0755'
+
+  - name: Creating rke2/config.yaml for primary node
+    copy:
+      dest: "/etc/rancher/rke2/config.yaml"
+      content: |
+        token: my-shared-secret
+        tls-san:
+          - rancher.mikes.zone
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Creating rke2/config.yaml for secondary nodes
+    copy:
+      dest: "/etc/rancher/rke2/config.yaml"
+      content: |
+        token: my-shared-secret
+        server: "https://{{hostvars['controlplane-0'].ansible_default_ipv4.address}}:9345"
+        tls-san:
+          - rancher.mikes.zone
+    when: hostvars[inventory_hostname].primary| default('false') |bool == false
+
+  - name: Install RKE2
+    ansible.builtin.shell: curl -sfL https://get.rke2.io | bash -
+
+  - name: Enable and start RKE2 on controlplane-0
+    ansible.builtin.systemd:
+      name: rke2-server
+      state: started
+      enabled: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Enable and start RKE2 on secondary controlplanes
+    throttle: 1
+    ansible.builtin.systemd:
+      name: rke2-server
+      state: started
+      enabled: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == false
+
