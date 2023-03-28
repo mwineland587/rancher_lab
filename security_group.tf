@@ -67,7 +67,7 @@ resource "aws_security_group_rule" "private_ingress" {
   from_port         = 0
   to_port           = 65535
   protocol          = "ALL"
-  cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
+  cidr_blocks       = formatlist("%s/32", concat(aws_instance.upstream_controlplane.*.private_ip, aws_instance.downstream_controlplane.*.private_ip, aws_instance.downstream_workers.*.private_ip))
   security_group_id = aws_security_group.private.id
 }
 
@@ -76,6 +76,6 @@ resource "aws_security_group_rule" "private_egress" {
   from_port         = 0
   to_port           = 65535
   protocol          = "ALL"
-  cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
+  cidr_blocks       = formatlist("%s/32", concat(aws_instance.upstream_controlplane.*.private_ip, aws_instance.downstream_controlplane.*.private_ip, aws_instance.downstream_workers.*.private_ip))
   security_group_id = aws_security_group.private.id
 }
