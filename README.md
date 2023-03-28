@@ -1,6 +1,6 @@
 # rancher_lab
 
-Software Requirements:
+## Software Requirements:
 
 aws-cli v2 + configured with credentials
 
@@ -8,7 +8,7 @@ Terraform v1.3.9+
 
 ansible [core 2.14.3]
 
-Install required ansible collection:
+## Install required ansible collection:
 
 ansible-galaxy collection install kubernetes.core
 
