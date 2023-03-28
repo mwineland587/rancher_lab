@@ -1,4 +1,5 @@
 # rancher_lab
+This project creates an upstream cluster in EC2 and a downstream cluster in EC2.
 
 ## Software Requirements:
 
