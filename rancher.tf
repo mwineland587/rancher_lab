@@ -8,7 +8,13 @@ provider "rancher2" {
 
 # Create a new rancher2_bootstrap
 resource "rancher2_bootstrap" "admin" {
-  depends_on = [null_resource.ansible_upstream]
+  depends_on = [
+    null_resource.ansible_upstream,
+    aws_security_group.public,
+    aws_security_group.private,
+    aws_security_group_rule.private_ingress,
+    aws_security_group_rule.private_egress
+  ]
   provider = rancher2.bootstrap
   initial_password = local.bootstrap_password
   password = local.rancher_password
@@ -26,7 +32,13 @@ provider "rancher2" {
 
 # Create a new rancher v2 RKE2 custom Cluster v2
 resource "rancher2_cluster_v2" "downstream1" {
-  depends_on = [null_resource.ansible_upstream]
+  depends_on = [
+    null_resource.ansible_upstream,
+    aws_security_group.public,
+    aws_security_group.private,
+    aws_security_group_rule.private_ingress,
+    aws_security_group_rule.private_egress
+  ]
   provider = rancher2.admin
   name = "downstream1"
   kubernetes_version = "v1.23.16+rke2r1"

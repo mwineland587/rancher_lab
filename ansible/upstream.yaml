@@ -1,0 +1,158 @@
+---
+
+- hosts: upstream
+  gather_facts: no
+  become: yes
+  tasks:
+
+  - name: Wait for system to become reachable
+    ansible.builtin.wait_for_connection:
+  - name: Gather facts for first time
+    ansible.builtin.setup:
+        #  - name: Display all variables/facts known for a host
+        #    debug:
+        #      var: hostvars[inventory_hostname]
+        #    tags: debug_info
+
+  - name: Create rke2 dir
+    ansible.builtin.file:
+      path: /etc/rancher/rke2
+      state: directory
+      mode: '0755'
+
+  - name: Creating rke2/config.yaml for primary node
+    copy:
+      dest: "/etc/rancher/rke2/config.yaml"
+      content: |
+        token: my-shared-secret
+        tls-san:
+          - {{ hostvars['aws_elb'].dns_name }}
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Creating rke2/config.yaml for secondary nodes
+    copy:
+      dest: "/etc/rancher/rke2/config.yaml"
+      content: |
+        token: my-shared-secret
+        server: "https://{{hostvars['upstream-controlplane-0'].ansible_default_ipv4.address}}:9345"
+        tls-san:
+          - {{ hostvars['aws_elb'].dns_name }}
+    when: hostvars[inventory_hostname].primary| default('false') |bool == false
+
+  - name: Install RKE2
+    ansible.builtin.shell: curl -sfL https://get.rke2.io | bash -
+    args:
+      creates: /var/lib/rancher
+
+  - name: Enable and start RKE2 on upstream-controlplane-0
+    ansible.builtin.systemd:
+      name: rke2-server
+      state: started
+      enabled: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Enable and start RKE2 on secondary controlplanes
+    throttle: 1
+    ansible.builtin.systemd:
+      name: rke2-server
+      state: started
+      enabled: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == false
+
+  - name: Create .kube dir
+    ansible.builtin.file:
+      path: /root/.kube
+      state: directory
+      mode: '0755'
+
+  - name: Create a symbolic link to kubectl
+    ansible.builtin.file:
+      src: /var/lib/rancher/rke2/bin/kubectl
+      dest: /usr/local/bin/kubectl
+      owner: root
+      group: root
+      state: link
+
+  - name: Create a symbolic link to kubeconfig
+    ansible.builtin.file:
+      src: /etc/rancher/rke2/rke2.yaml
+      dest: /root/.kube/config
+      owner: root
+      group: root
+      state: link
+
+  - name: Install python3-pip
+    zypper:
+      name: python3-pip
+      state: present
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Install kubernetes python package
+    ansible.builtin.pip:
+      name: kubernetes
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Install helm
+    ansible.builtin.shell: curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -
+    args:
+      creates: /usr/local/bin/helm
+
+  - name: Add jetstack repo
+    kubernetes.core.helm_repository:
+      name: jetstack
+      repo_url: https://charts.jetstack.io
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Add rancher repo
+    kubernetes.core.helm_repository:
+      name: rancher-stable
+      repo_url: https://releases.rancher.com/server-charts/stable
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Download Cert-Manager CRDs to the cluster.
+    ansible.builtin.get_url:
+      url: https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+      dest: ~/cert-manager.crds.yaml
+      mode: '0644'
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Apply Cert-Manager CRDs to the cluster.
+    kubernetes.core.k8s:
+      state: present
+      src: ~/cert-manager.crds.yaml
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Deploy Cert-Manager chart
+    kubernetes.core.helm:
+      name: cert-manager
+      namespace: cert-manager
+      create_namespace: true
+      chart_ref: jetstack/cert-manager
+      chart_version: v1.7.1
+      update_repo_cache: true
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Deploy Rancher chart
+    kubernetes.core.helm:
+      name: rancher
+      namespace: cattle-system
+      create_namespace: true
+      chart_ref: rancher-stable/rancher
+      chart_version: 2.7.1
+      update_repo_cache: true
+      set_values:
+        - value: hostname={{ hostvars['aws_elb'].dns_name }}
+        - value: bootstrapPassword={{ bootstrap_password }}
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true
+
+  - name: Wait for Rancher to respond
+    ansible.builtin.uri:
+      url: https://{{ hostvars['aws_elb'].dns_name }}/dashboard/auth/login
+      follow_redirects: all
+      validate_certs: false
+      method: GET
+    register: _result
+    until: _result.status == 200
+    retries: 60
+    delay: 5
+    when: hostvars[inventory_hostname].primary| default('false') |bool == true

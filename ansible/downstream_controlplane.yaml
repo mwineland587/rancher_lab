@@ -1,0 +1,19 @@
+- hosts: downstream_controlplane
+  gather_facts: no
+  become: yes
+  tasks:
+
+  - name: Wait for system to become reachable
+    ansible.builtin.wait_for_connection:
+
+  - name: Gather facts for first time
+    ansible.builtin.setup:
+
+  - name: Print node_command
+    debug: 
+      msg: "Command: '{{ node_command }}'"
+  - name: Register node
+    throttle: 1
+    ansible.builtin.shell: "{{ node_command }}"
+    args:
+      creates: /var/lib/rancher

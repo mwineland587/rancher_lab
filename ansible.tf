@@ -22,14 +22,14 @@ resource "null_resource" "ansible_upstream" {
 resource "null_resource" "ansible_downstream_controlplane" {
   depends_on = [local_file.hosts_cfg]
   provisioner "local-exec" {
-    command = nonsensitive("ansible-playbook -i ansible/inventory.cfg ansible/downstream_controlplane.yaml --extra-vars node_command=\"${rancher2_cluster_v2.downstream1.cluster_registration_token[0].insecure_node_command} --etcd --controlplane\"")
+    command = nonsensitive("ansible-playbook -i ansible/inventory.cfg ansible/downstream_controlplane.yaml --extra-vars \"node_command='${rancher2_cluster_v2.downstream1.cluster_registration_token[0].insecure_node_command} --etcd --controlplane'\"")
   }
 }
 
-#resource "null_resource" "ansible_downstream_workers" {
-#  depends_on = [local_file.hosts_cfg]
-#  provisioner "local-exec" {
-#    command = nonsensitive("ansible-playbook -i ansible/inventory.cfg ansible/downstream_workers.yaml --extra-vars node_command='${rancher2_cluster_v2.downstream1.cluster_registration_token[0].insecure_node_command} --worker'")
-#  }
-#}
+resource "null_resource" "ansible_downstream_workers" {
+  depends_on = [local_file.hosts_cfg]
+  provisioner "local-exec" {
+    command = nonsensitive("ansible-playbook -i ansible/inventory.cfg ansible/downstream_workers.yaml --extra-vars \"node_command='${rancher2_cluster_v2.downstream1.cluster_registration_token[0].insecure_node_command} --worker'\"")
+  }
+}
 

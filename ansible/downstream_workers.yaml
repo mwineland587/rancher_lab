@@ -1,0 +1,16 @@
+- hosts: downstream_workers
+  gather_facts: no
+  become: yes
+  tasks:
+
+  - name: Wait for system to become reachable
+    ansible.builtin.wait_for_connection:
+
+  - name: Gather facts for first time
+    ansible.builtin.setup:
+
+  - name: Register node
+    ansible.builtin.shell: '{{ node_command }}'
+    args:
+      creates: /var/lib/rancher
+
