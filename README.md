@@ -12,6 +12,7 @@ ansible [core 2.14.3]
 
 ansible-galaxy collection install kubernetes.core
 
+## Update variables
 Copy variables.tf.sample to variables.tf and put in your public SSH key, bootstrap password and rancher admin password
 
-Then just run terraform apply
+### Then just run terraform apply
