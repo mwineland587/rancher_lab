@@ -3,6 +3,8 @@ locals {
   ami            = "ami-0c544bda9765444c2"
   type           = "c4.xlarge"
   name_tag       = "My EC2 Instance"
+  bootstrap_password = "put something here"
+  rancher_password = "put something else here"
   ssh_key        = "ssh-rsa AAAAB3Nz...diqs8lGQ== michael"
 }
 
