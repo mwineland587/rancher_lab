@@ -1,5 +1,26 @@
-resource "aws_security_group" "ssh" {
-  name = "Allow SSH"
+resource "aws_security_group" "public" {
+  name = "Allow public traffic"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "ALL"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     from_port   = 22
@@ -8,16 +29,26 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress {
-    from_port   = 22
-    to_port     = 22
+  ingress {
+    from_port   = 2376
+    to_port     = 2376
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
 
-resource "aws_security_group" "https" {
-  name = "Allow HTTPS"
+  ingress {
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "UDP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     from_port   = 443
@@ -25,33 +56,26 @@ resource "aws_security_group" "https" {
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  egress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
-resource "aws_security_group" "all" {
+resource "aws_security_group" "private" {
   name = "Allow all ports between nodes"
 }
 
-resource "aws_security_group_rule" "in_all" {
+resource "aws_security_group_rule" "private_ingress" {
   type              = "ingress"
   from_port         = 0
   to_port           = 65535
   protocol          = "ALL"
   cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
-  security_group_id = aws_security_group.all.id
+  security_group_id = aws_security_group.private.id
 }
 
-resource "aws_security_group_rule" "out_all" {
+resource "aws_security_group_rule" "private_egress" {
   type              = "egress"
   from_port         = 0
   to_port           = 65535
   protocol          = "ALL"
   cidr_blocks       = formatlist("%s/32", aws_instance.upstream_controlplane.*.private_ip)
-  security_group_id = aws_security_group.all.id
+  security_group_id = aws_security_group.private.id
 }
