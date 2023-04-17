@@ -5,7 +5,7 @@ locals {
   downstream_worker_count = 1
   ami            = "ami-0c544bda9765444c2"
   type           = "c4.xlarge"
-  name_tag       = "put your name here"
+  name_tag       = "put your name here" # No spaces
   bootstrap_password = "put something here"
   rancher_password = "put something else here"
   ssh_key        = "ssh-rsa AAAAB3Nz...diqs8lGQ== michael"
