@@ -1,5 +1,5 @@
 resource "aws_security_group" "public" {
-  name = "Allow public traffic"
+  name = "${local.name_tag} Allow public traffic"
 
   egress {
     from_port   = 0
@@ -59,7 +59,7 @@ resource "aws_security_group" "public" {
 }
 
 resource "aws_security_group" "private" {
-  name = "Allow all ports between nodes"
+  name = "${local.name_tag} Allow all ports between nodes"
 }
 
 resource "aws_security_group_rule" "private_ingress" {

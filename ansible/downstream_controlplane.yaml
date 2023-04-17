@@ -9,9 +9,6 @@
   - name: Gather facts for first time
     ansible.builtin.setup:
 
-  - name: Print node_command
-    debug: 
-      msg: "Command: '{{ node_command }}'"
   - name: Register node
     throttle: 1
     ansible.builtin.shell: "{{ node_command }}"

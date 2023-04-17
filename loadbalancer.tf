@@ -1,8 +1,8 @@
 resource "aws_elb" "lb" {
-  name               = "rancher-lb"
-  availability_zones = ["us-east-1b"]
+  name               = "${local.name_tag}-rancher-lb"
+  availability_zones = [local.availability_zone]
 
-  listener {
+listener {
     instance_port     = 6443
     instance_protocol = "tcp"
     lb_port           = 6443

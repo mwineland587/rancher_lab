@@ -4,6 +4,7 @@ resource "aws_key_pair" "terraform" {
 }
 
 resource "aws_instance" "upstream_controlplane" {
+  availability_zone = local.availability_zone
   count           = local.upstream_count
   ami             = local.ami //SLES AMI
   instance_type   = local.type
@@ -17,11 +18,12 @@ resource "aws_instance" "upstream_controlplane" {
   }
 
   tags = {
-    Name = "Upstream Controlplane ${count.index}",
+    Name = "${local.name_tag} Upstream Controlplane ${count.index}",
   }
 }
 
 resource "aws_instance" "downstream_controlplane" {
+  availability_zone = local.availability_zone
   count           = local.downstream_control_count
   ami             = local.ami //SLES AMI
   instance_type   = local.type
@@ -35,11 +37,12 @@ resource "aws_instance" "downstream_controlplane" {
   }
 
   tags = {
-    Name = "Downstream Controlplane ${count.index}",
+    Name = "${local.name_tag} Downstream Controlplane ${count.index}",
   }
 }
 
 resource "aws_instance" "downstream_workers" {
+  availability_zone = local.availability_zone
   count           = local.downstream_worker_count
   ami             = local.ami //SLES AMI
   instance_type   = local.type
@@ -53,6 +56,6 @@ resource "aws_instance" "downstream_workers" {
   }
 
   tags = {
-    Name = "Downstream Worker ${count.index}",
+    Name = "${local.name_tag} Downstream Worker ${count.index}",
   }
 }
