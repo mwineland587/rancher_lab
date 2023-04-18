@@ -18,6 +18,14 @@ output "rancher_url" {
   value = "https://${aws_elb.lb.dns_name}"
 }
 
+output "rancher_user" {
+  value = "admin"
+}
+
+output "rancher_password" {
+  value = local.rancher_password
+}
+
 output "upstream-ssh" {
   description = "Public IP Address of upstream instances"
   value       = [ for node in aws_instance.upstream_controlplane.*.public_ip: "ssh ec2-user@${node}" ]
