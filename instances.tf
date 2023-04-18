@@ -1,5 +1,5 @@
 resource "aws_key_pair" "terraform" {
-  key_name   = "terraform-key"
+  key_name   = "${local.name_tag}-terraform-key"
   public_key = local.ssh_key
 }
 
@@ -8,7 +8,7 @@ resource "aws_instance" "upstream_controlplane" {
   count             = local.upstream_count
   ami               = local.ami //SLES AMI
   instance_type     = local.type
-  key_name          = "terraform-key"
+  key_name          = "${local.name_tag}-terraform-key"
   security_groups   = [aws_security_group.public.name, aws_security_group.private.name]
 
   root_block_device {
@@ -27,7 +27,7 @@ resource "aws_instance" "downstream_controlplane" {
   count             = local.downstream_control_count
   ami               = local.ami //SLES AMI
   instance_type     = local.type
-  key_name          = "terraform-key"
+  key_name          = "${local.name_tag}-terraform-key"
   security_groups   = [aws_security_group.public.name, aws_security_group.private.name]
 
   root_block_device {
@@ -46,7 +46,7 @@ resource "aws_instance" "downstream_workers" {
   count             = local.downstream_worker_count
   ami               = local.ami //SLES AMI
   instance_type     = local.type
-  key_name          = "terraform-key"
+  key_name          = "${local.name_tag}-terraform-key"
   security_groups   = [aws_security_group.public.name, aws_security_group.private.name]
 
   root_block_device {
