@@ -1,5 +1,5 @@
 locals {
-  availability_zones = "us-east-1b"
+  availability_zone = "us-east-1b"
   upstream_count = 3
   downstream_control_count = 1
   downstream_worker_count = 1
