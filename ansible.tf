@@ -3,10 +3,10 @@ resource "local_file" "hosts_cfg" {
   count = local.upstream_count
   content = templatefile("${path.module}/templates/ansible_inventory.tpl",
     {
-      upstream = aws_instance.upstream_controlplane.*.public_ip,
+      upstream                = aws_instance.upstream_controlplane.*.public_ip,
       downstream_controlplane = aws_instance.downstream_controlplane.*.public_ip,
-      downstream_workers = aws_instance.downstream_workers.*.public_ip,
-      lb_dns = aws_elb.lb.dns_name
+      downstream_workers      = aws_instance.downstream_workers.*.public_ip,
+      lb_dns                  = aws_elb.lb.dns_name
     }
   )
   filename = "ansible/inventory.cfg"
