@@ -12,7 +12,7 @@ locals {
 }
 
 output "rancher_url" {
-  value        = https://aws_instance.upstream_controlplane.[0].public_ip.sslip.io
+  value = "https://${aws_elb.lb.dns_name}"
 }
 #output "public_ip" {
 #  value       = aws_instance.upstream_controlplane.*.public_ip
