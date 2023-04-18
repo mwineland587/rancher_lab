@@ -41,7 +41,7 @@ resource "rancher2_cluster_v2" "downstream1" {
   ]
   provider                                 = rancher2.admin
   name                                     = "downstream1"
-  kubernetes_version                       = "v1.23.16+rke2r1"
+  kubernetes_version                       = local.downstream_k8s
   enable_network_policy                    = false
   default_cluster_role_for_project_members = "user"
 }

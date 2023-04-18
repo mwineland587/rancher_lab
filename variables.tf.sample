@@ -3,6 +3,9 @@ locals {
   upstream_count = 3
   downstream_control_count = 1
   downstream_worker_count = 1
+  downstream_k8s           = "v1.23.16+rke2r1"
+  cert_manager_version     = "v1.7.1"
+  rancher_version          = "2.7.2"
   ami            = "ami-0c544bda9765444c2"
   type           = "c4.xlarge"
   name_tag       = "put your name here" # No spaces
@@ -14,12 +17,18 @@ locals {
 output "rancher_url" {
   value = "https://${aws_elb.lb.dns_name}"
 }
-#output "public_ip" {
-#  value       = aws_instance.upstream_controlplane.*.public_ip
-#  description = "Public IP Address of EC2 instance"
-#}
 
-#output "instance_id" {
-#  value       = aws_instance.upstream_controlplane.*.id
-#  description = "Instance ID"
-#}
+output "upstream-ssh" {
+  description = "Public IP Address of upstream instances"
+  value       = [ for node in aws_instance.upstream_controlplane.*.public_ip: "ssh ec2-user@${node}" ]
+}
+
+output "downstream-cp-ssh" {
+  description = "Public IP Address of upstream instances"
+  value       = [ for node in aws_instance.downstream_controlplane.*.public_ip: "ssh ec2-user@${node}" ]
+}
+
+output "downstream-worker-ssh" {
+  description = "Public IP Address of upstream instances"
+  value       = [ for node in aws_instance.downstream_workers.*.public_ip: "ssh ec2-user@${node}" ]
+}

@@ -111,7 +111,7 @@
 
   - name: Download Cert-Manager CRDs to the cluster.
     ansible.builtin.get_url:
-      url: https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+      url: "https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml"
       dest: ~/cert-manager.crds.yaml
       mode: '0644'
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
@@ -128,7 +128,7 @@
       namespace: cert-manager
       create_namespace: true
       chart_ref: jetstack/cert-manager
-      chart_version: v1.7.1
+      chart_version: "{{ cert_manager_version }}"
       update_repo_cache: true
     when: hostvars[inventory_hostname].primary| default('false') |bool == true
 
@@ -138,7 +138,7 @@
       namespace: cattle-system
       create_namespace: true
       chart_ref: rancher-stable/rancher
-      chart_version: 2.7.1
+      chart_version: "{{ rancher_version }}"
       update_repo_cache: true
       set_values:
         - value: hostname={{ hostvars['aws_elb'].dns_name }}
