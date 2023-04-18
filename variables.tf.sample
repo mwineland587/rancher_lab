@@ -24,11 +24,11 @@ output "upstream-ssh" {
 }
 
 output "downstream-cp-ssh" {
-  description = "Public IP Address of upstream instances"
+  description = "Public IP Address of downstream controlplane"
   value       = [ for node in aws_instance.downstream_controlplane.*.public_ip: "ssh ec2-user@${node}" ]
 }
 
 output "downstream-worker-ssh" {
-  description = "Public IP Address of upstream instances"
+  description = "Public IP Address of downstream workers"
   value       = [ for node in aws_instance.downstream_workers.*.public_ip: "ssh ec2-user@${node}" ]
 }
