@@ -4,6 +4,7 @@ locals {
   downstream_control_count = 1
   downstream_worker_count = 1
   downstream_k8s           = "v1.23.16+rke2r1"
+  upstream_rke2_version    = "v1.23"
   cert_manager_version     = "v1.7.1"
   rancher_version          = "2.7.2"
   ami            = "ami-0c544bda9765444c2"

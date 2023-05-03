@@ -41,6 +41,8 @@
 
   - name: Install RKE2
     ansible.builtin.shell: curl -sfL https://get.rke2.io | bash -
+    environment:
+      INSTALL_RKE2_CHANNEL: "{{ upstream_rke2_version }}"
     args:
       creates: /var/lib/rancher
 

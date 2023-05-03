@@ -15,7 +15,7 @@ resource "local_file" "hosts_cfg" {
 resource "null_resource" "ansible_upstream" {
   depends_on = [local_file.hosts_cfg]
   provisioner "local-exec" {
-    command = "ansible-playbook -i ansible/inventory.cfg ansible/upstream.yaml --extra-vars \"bootstrap_password='${local.bootstrap_password}' cert_manager_version=${local.cert_manager_version} rancher_version=${local.rancher_version}\""
+    command = "ansible-playbook -i ansible/inventory.cfg ansible/upstream.yaml --extra-vars \"bootstrap_password='${local.bootstrap_password}' cert_manager_version=${local.cert_manager_version} rancher_version=${local.rancher_version} upstream_rke2_version=${local.upstream_rke2_version}\""
   }
 }
 
